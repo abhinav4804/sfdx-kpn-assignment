@@ -1,0 +1,17 @@
+<template>
+    <lightning-card title="Order Products">
+        <lightning-button label="Activate" slot="actions" variant="brand" onclick={activateHandler} disabled={activatedOrder}></lightning-button>
+        <template if:true={orderProductList}>
+            <div style="height: 300px;">
+                <lightning-datatable
+                        key-field="Product2Id"
+                        data={orderProductList}
+                        show-row-number-column
+                        row-number-offset={rowOffset}
+                        hide-checkbox-column
+                        columns={columns}>
+                </lightning-datatable>
+            </div>
+        </template>
+        </lightning-card>
+</template>

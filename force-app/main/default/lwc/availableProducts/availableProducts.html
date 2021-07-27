@@ -1,0 +1,17 @@
+<template>
+    <lightning-card title="Available Products">
+        <template if:true={availableProdList}>
+            <div style="height: 300px;">
+                <lightning-datatable
+                        key-field="productId"
+                        data={availableProdList}
+                        columns={columns}
+                        show-row-number-column
+                        row-number-offset={rowOffset}
+                        hide-checkbox-column
+                        onrowaction={addProductHandler}>
+                </lightning-datatable>
+            </div>
+        </template>
+        </lightning-card>
+</template>
