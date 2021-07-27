@@ -1,4 +1,8 @@
 <template>
+    <template if:true={showSpinner}>
+        <lightning-spinner variant="brand" alternative-text="Loading..." size="medium"></lightning-spinner>
+        <div style="position: fixed;" class="slds-backdrop slds-backdrop_open"></div>
+    </template>
     <lightning-card title="Order Products">
         <lightning-button label="Activate" slot="actions" variant="brand" onclick={activateHandler} disabled={activatedOrder}></lightning-button>
         <template if:true={orderProductList}>

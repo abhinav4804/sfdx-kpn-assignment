@@ -1,5 +1,7 @@
 import { LightningElement, api, track, wire } from 'lwc';
 import { getRecord } from "lightning/uiRecordApi";
+import { reduceErrors } from 'c/ldsUtils';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
 const FIELDS = ['Order.Status'];
 
@@ -49,6 +51,7 @@ export default class OrderProducts extends LightningElement {
     @track orderProductList;
     @track columns = COLUMNS;
     @track activatedOrder = false;
+    @track showSpinner = false;
 
     // By using the MessageContext @wire adapter, unsubscribe will be called
     // implicitly during the component descruction lifecycle.
@@ -77,7 +80,7 @@ export default class OrderProducts extends LightningElement {
                 this.activatedOrder = true;
             }
         } else if (error) {
-
+            this.showToastMessage('Error', 'error', reduceErrors(error), 'dismissable');
         }
     }
 
@@ -87,6 +90,7 @@ export default class OrderProducts extends LightningElement {
     }
 
     loadOrderProducts() {
+        this.showSpinner = true;
         ORDERPRODUCTS({ orderId: this.recordId })
             .then(data => {
 
@@ -96,9 +100,11 @@ export default class OrderProducts extends LightningElement {
                     }
                 })
                 this.orderProductList = data;
+                this.showSpinner = false;
             })
             .catch(error => {
-
+                this.showSpinner = false;
+                this.showToastMessage('Error', 'error', reduceErrors(error), 'dismissable');
             })
     }
 
@@ -108,14 +114,26 @@ export default class OrderProducts extends LightningElement {
             .then(data => {
 
                 this.activatedOrder = true;
-
-                console.log('**publish');
+                this.showSpinner = false;
                 //Publish the event to update the Order Products status 
                 const payload = { recordId: this.recordId };
                 publish(this.messageContext, ORDER_CHANNEL, payload);
              })
-            .catch(error => { })
+            .catch(error => {
+                this.showSpinner = false;
+                this.showToastMessage('Error', 'error', reduceErrors(error), 'dismissable');
+             })
 
+    }
+
+    showToastMessage(title, variant, message, mode){
+        const showToastEvt = new ShowToastEvent({
+            "title" : title,
+            "variant" : variant,
+            "message" : message[0],
+            "mode" : mode
+        });
+        this.dispatchEvent(showToastEvt);
     }
 
 }

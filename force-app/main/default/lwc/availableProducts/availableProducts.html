@@ -1,4 +1,9 @@
 <template>
+    <template if:true={showSpinner}>
+        <lightning-spinner variant="brand" alternative-text="Loading..." size="medium"></lightning-spinner>
+        <div style="position: fixed;" class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+
     <lightning-card title="Available Products">
         <template if:true={availableProdList}>
             <div style="height: 300px;">

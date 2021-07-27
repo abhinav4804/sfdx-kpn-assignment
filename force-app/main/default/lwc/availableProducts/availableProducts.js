@@ -1,5 +1,7 @@
 import { LightningElement, api, track, wire } from 'lwc';
 import { getRecord } from "lightning/uiRecordApi";
+import { reduceErrors } from 'c/ldsUtils';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
 const FIELDS = ['Order.Pricebook2Id', 'Order.Status'];
 
@@ -46,6 +48,7 @@ export default class AvailableProducts extends LightningElement {
     @track availableProdList;
     @track columns = COLUMNS;
     @track activatedOrder = false;
+    @track showSpinner = false;
 
     rowOffset = 0;
 
@@ -67,17 +70,17 @@ export default class AvailableProducts extends LightningElement {
 
             }
         } else if (error) {
-
+            this.showToastMessage('Error', 'error', reduceErrors(error), 'dismissable');
         }
     }
 
     connectedCallback() {
-        this.loadOrderProducts();
-        this.subscribeToMessageChannel(false);
+        this.loadOrderProducts(false);
+        this.subscribeToMessageChannel();
     }
 
     // Encapsulate logic for LMS subscribe.
-    subscribeToMessageChannel() {console.log('**subscribe');
+    subscribeToMessageChannel() {
         this.subscription = subscribe(
             this.messageContext,
             ORDER_CHANNEL,
@@ -91,11 +94,10 @@ export default class AvailableProducts extends LightningElement {
     }
 
     loadOrderProducts(fromMessageService) {
-        console.log('Method called');
+        this.showSpinner = true;
         if (fromMessageService) {
             this.columns.forEach(item => {
                 if (item.type == 'button') {
-                    console.log('**set to true');
                     item.typeAttributes.disabled = true;
                 }
             })
@@ -103,13 +105,16 @@ export default class AvailableProducts extends LightningElement {
         ORDERPRODUCTS({ orderId: this.recordId })
             .then(data => {
                 this.availableProdList = data;
+                this.showSpinner = false;
             })
             .catch(error => {
-
+                this.showSpinner = false;
+                this.showToastMessage('Error', 'error', reduceErrors(error), 'dismissable');
             })
     }
 
     addProductHandler(event) {
+        this.showSpinner = true;
         let productInfo;
         const recId = event.detail.row.productId;
         //const actionName = event.detail.action.name; 
@@ -124,14 +129,27 @@ export default class AvailableProducts extends LightningElement {
         ADDPRODUCTS({ orderId: this.recordId, priceBookId: this.priceBookId, productInfo: JSON.stringify(productInfo) })
             .then(data => {
                 this.loadOrderProducts();
-                
+                this.showSpinner = false;
                 //Publish the event to update the Order Products status 
                 const payload = { recordId: this.recordId };
                 publish(this.messageContext, ORDER_ITEM_CHANNEL, payload);
 
             })
-            .catch(error => { })
+            .catch(error => {
+                this.showSpinner = false;
+                this.showToastMessage('Error', 'error', reduceErrors(error), 'dismissable');
+             })
 
+    }
+
+    showToastMessage(title, variant, message, mode){
+        const showToastEvt = new ShowToastEvent({
+            "title" : title,
+            "variant" : variant,
+            "message" : message[0],
+            "mode" : mode
+        });
+        this.dispatchEvent(showToastEvt);
     }
 
 
