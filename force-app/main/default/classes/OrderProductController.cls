@@ -59,8 +59,6 @@ public with sharing class OrderProductController {
         request.setBody(JSON.serialize(createRequest));
         HttpResponse response = http.send(request);
 
-        //ResponseWrapper responseWrap = (ResponseWrapper)System.JSON.deserialize(response.getBody(), ResponseWrapper.class);
-        //system.debug('***response:- ' + responseWrap.StatusCode);
         if(response.getStatusCode() == STATUS_CODE_200){
             system.debug('***Successful Callout');
         }else{
